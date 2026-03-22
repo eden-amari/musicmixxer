@@ -1,0 +1,18 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dj-rest-auth>=7.2.0",
+    "django>=6.0.3",
+    "django-allauth>=65.15.0",
+    "django-ninja>=1.6.2",
+    "djangorestframework>=3.17.0",
+    "djangorestframework-simplejwt>=5.5.1",
+    "google-auth>=2.49.1",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv>=1.2.2",
+    "requests>=2.32.5",
+]
