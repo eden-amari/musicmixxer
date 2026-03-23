@@ -18,9 +18,11 @@ from django.urls import path, include
 from ninja import NinjaAPI
 from apps.users.auth_views import CustomTokenRefreshView
 from apps.users.api import router as users_router
+from apps.playlists.api.routes import router as playlist_router
 
 api = NinjaAPI()
 api.add_router("/users/", users_router)
+api.add_router("/playlists/", playlist_router)
 
 
 
@@ -29,6 +31,5 @@ urlpatterns = [
     path("api/", api.urls),
     path("api/auth/registration/", include("dj_rest_auth.registration.urls")),
 
-    # ✅ USE CUSTOM VIEW
     path("api/token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
 ]
