@@ -1,0 +1,41 @@
+
+.nav-links {
+    display: flex;
+    flex-direction:row;
+    justify-content: right;
+    padding: 20px;
+    /* margin: 10px;; */
+    height: 8vh;
+}
+
+.li {
+    margin-right: 10px;
+}
+
+
+.donnaNavbar {
+    background-color: #ffc9e8;
+    height: 8vh;
+    color: black;
+    margin-bottom: -2px;
+}
+
+.madonnaNavbar {
+    background-color: black;
+    height: 8vh;
+    color: white;
+}
+
+.mcrNavbar {
+    background-color: black;
+    height: 8vh;
+    color: white;
+}
+
+.newJeansNavbar {
+    background-color: black;
+    height: 8vh;
+    color: white;
+}
+
+

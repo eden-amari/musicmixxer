@@ -1,0 +1,62 @@
+.hr {
+    width: 50%;
+    height: 1px;
+    margin: 20px auto;
+    border-top: 3px solid white;
+}
+
+.donnaNavHR {
+    z-index: 1;
+    width: 100%;
+    height: 1px;
+    margin: 0 auto;
+    border: 3px solid #0a2f5e;
+}
+
+/* .mcrNavHR {
+    z-index: 1;
+    width: 100%;
+    height: 1px;
+    margin: 0 auto;
+    border: 3px solid #194355;
+} */
+
+
+.h1 {
+    font-size: 60px;
+    font-family: 'Coolvetica', sans-serif;
+    line-height: 10px;
+    letter-spacing: 0.025em;
+    color: white;
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.h3 {
+    font-size: 30px;
+    font-family: 'Coolvetica', sans-serif;
+    font-style: italic;
+    line-height: 10px;
+    letter-spacing: 0.025em;
+    color: white;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.p {
+    font-size: 18px;
+    font-family: 'Agrandir', sans-serif;
+    line-height: 1.5;
+    color: black;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.welcomeText {
+    font-size: 20px;
+    text-align: center;
+    font-family: Agrandir, sans-serif;
+    max-width: 25vw;
+    margin-bottom: 25px;
+    
+}

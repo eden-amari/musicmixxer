@@ -1,0 +1,100 @@
+.leftPanel {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.leftPanel {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.leftDonnaBig {
+    width: 40vw;
+    height: 100vh;
+    background-color: #194b8c;
+}
+
+.leftDonnaSmall {
+    width: 5vw;
+    height: 100vh;
+    background-color: #0a2f5e;
+}
+
+.rightDonna {
+    /* align-items: center; */
+    width: 55vw;
+    height: 100vh;
+    background-color: #0a2f5e;
+    margin: auto;
+    overflow: hidden;
+}
+/* --------------------------------------------------- */
+.leftMadonnaBig {
+    width: 40vw;
+    height: 100vh;
+    background-color: #d57e91;
+}
+
+.leftMadonnaSmall {
+    width: 5vw;
+    height: 100vh;
+    background-color: #bd6175;
+}
+
+.rightMadonna {
+    /* align-items: center; */
+    width: 55vw;
+    height: 100vh;
+    background-color: #ffffff;
+    margin: auto;
+    overflow: hidden;
+}
+/* --------------------------------------------------- */
+.leftmcrBig {
+    width: 40vw;
+    height: 100vh;
+    background-color: #061c25;
+}
+
+.leftmcrSmall {
+    width: 5vw;
+    height: 100vh;
+    background-color: #184355;
+}
+
+.rightmcr {
+    /* align-items: center; */
+    width: 55vw;
+    height: 100vh;
+    background-color: #ffffff;
+    margin: auto;
+    overflow: hidden;
+}
+
+/* --------------------------------------------------- */
+.leftNewJeansBig {
+    width: 40vw;
+    height: 100vh;
+    background-color: #ead7ff;
+    color: black;
+}
+
+.leftNewJeansSmall {
+    width: 5vw;
+    height: 100vh;
+    background-color: #bb9ae0;
+}
+
+.rightNewJeans {
+    /* align-items: center; */
+    width: 55vw;
+    height: 100vh;
+    background-color: #ffffff;
+    margin: auto;
+    overflow: hidden;
+}

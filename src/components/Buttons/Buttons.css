@@ -1,0 +1,101 @@
+.homeImportButton {
+    width: 17vw;
+    height: 6vh;;
+    border-radius: 0 10px 10px 0;
+    background-color: white;
+    color: black;
+    
+}   
+
+.buttonHolder {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.donnaColorSliver {
+    background-color: #ffc9e8;
+    width: 1vw;
+    height: 6.07vh; 
+}
+
+.mcrColorSliver {
+    background-color: #194355;
+    width: 1vw;
+    height: 6.07vh; 
+}   
+
+.madonnaColorSliver {
+    background-color: black;
+    width: 1vw;
+    height: 6.07vh; 
+}   
+
+.newJeansColorSliver {
+    background-color: #bb9ae0;
+    width: 1vw;
+    height: 6.07vh; 
+}
+
+/* Carousel order: Donna -> Madonna -> New Jeans -> MCR -> Donna */
+.carouselButtons {
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: -30vh;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.circularButtonLeft {
+
+    width: 4vh;
+    height: 4vh;
+    border-radius: 50%;
+    border: black;
+    background-color: rgb(255, 255, 255);
+    color: black;
+    margin-right: 10.75vw;
+}
+
+.circularButtonRight {
+    width: 4vh;
+    height: 4vh;
+    border-radius: 50%;
+    border: black;
+    color: black;
+    background-color: rgb(255, 255, 255);
+  
+    margin-left: 10.75vw;
+}
+
+.donnaCircle:hover {
+    background-color: #0a2f5e;
+    color: white;
+    border: 4px solid white;
+}
+
+.madonnaCircle:hover {
+    background-color: black;
+    color: white;
+    border: 4px solid white;
+}
+
+.newJeansCircle:hover {
+    background-color: black;
+    color: white;
+    border: 4px solid white;
+}
+
+.mcrCircle:hover {
+    background-color: black;
+    color: white;
+    border: 4px solid white;
+}
+
+
+
+
+/* add the two circular buttons on the bottom */
