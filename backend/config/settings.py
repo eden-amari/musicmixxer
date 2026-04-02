@@ -20,6 +20,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 🔥 correct way
 load_dotenv(BASE_DIR / ".env")
 
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+
 ACCOUNT_ADAPTER = "apps.users.adapters.CustomAccountAdapter"
 
 # Quick-start development settings - unsuitable for production
@@ -48,6 +53,8 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.tracks",
     "apps.playlists",
+    "apps.imports",
+    "apps.integrations",
 
     # DRF
     "rest_framework",

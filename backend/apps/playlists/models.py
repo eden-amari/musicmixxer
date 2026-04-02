@@ -11,7 +11,12 @@ class Playlist(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-
+    spotify_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True
+    )
     is_public = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -24,12 +29,19 @@ class Playlist(models.Model):
 
 class PlaylistItem(models.Model):
     playlist = models.ForeignKey(
-        Playlist,
+        "Playlist",
         on_delete=models.CASCADE,
         related_name="items"
     )
 
-    song_id = models.IntegerField()
+    
+    track = models.ForeignKey(
+        "tracks.Track",
+        on_delete=models.CASCADE,
+        related_name="playlist_items",
+        null=True,    
+        blank=True       
+    )
 
     position = models.IntegerField()
 
@@ -45,5 +57,4 @@ class PlaylistItem(models.Model):
         ]
 
     def __str__(self):
-        return f"Playlist {self.playlist_id} - Song {self.song_id} @ {self.position}"
-    
+        return f"Playlist {self.playlist_id} - Track {self.track_id} @ {self.position}"

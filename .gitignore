@@ -33,4 +33,4 @@ htmlcov/
 # Node (future frontend)
 node_modules/
 .next/
-dist/
+dist/db.sqlite3
