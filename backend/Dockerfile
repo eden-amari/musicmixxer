@@ -1,36 +1,38 @@
 # ------------------------------
-# Base image (match uv.lock)
+# Base image (stable)
 # ------------------------------
-FROM python:3.11-slim
+FROM python:3.11-bookworm
 
 # ------------------------------
-# UTF + Python settings
+# Python environment settings
 # ------------------------------
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # ------------------------------
-# System deps
+# System dependencies
 # ------------------------------
-RUN apt-get update && apt-get install -y \
-    curl \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 # ------------------------------
 # Install uv
 # ------------------------------
-RUN pip install uv
+RUN pip install --no-cache-dir uv
 
 # ------------------------------
-# Workdir
+# Set working directory
 # ------------------------------
 WORKDIR /app
 
 # ------------------------------
-# Copy dependency files
+# Copy dependency files first (layer caching)
 # ------------------------------
 COPY pyproject.toml uv.lock ./
 
@@ -40,7 +42,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
 # ------------------------------
-# Copy project
+# Copy project files
 # ------------------------------
 COPY . .
 
@@ -50,6 +52,6 @@ COPY . .
 EXPOSE 8000
 
 # ------------------------------
-# Start (🔥 AUTO MIGRATIONS)
+# Start application
 # ------------------------------
 CMD ["sh", "-c", "uv run python manage.py migrate && uv run python manage.py runserver 0.0.0.0:8000"]
