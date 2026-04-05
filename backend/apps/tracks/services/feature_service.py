@@ -1,6 +1,8 @@
 import requests
+import time
 from typing import Dict, Optional
 from django.conf import settings
+
 
 class AudioFeatureService:
     """
@@ -18,7 +20,7 @@ class AudioFeatureService:
         "x-rapidapi-host": "track-analysis.p.rapidapi.com"
     }
 
-    TIMEOUT = 5
+    TIMEOUT = 12  # ✅ increased timeout
 
     # ==================================================
     # PUBLIC ENTRY
@@ -56,22 +58,35 @@ class AudioFeatureService:
     def _fetch_by_spotify_id(cls, external_id: str) -> Optional[Dict]:
         url = f"{cls.BASE_URL}/pktx/spotify/{external_id}"
 
-        try:
-            response = requests.get(
-                url,
-                headers=cls.HEADERS,
-                timeout=cls.TIMEOUT
-            )
+        for attempt in range(2):  # ✅ retry loop
+            try:
+                response = requests.get(
+                    url,
+                    headers=cls.HEADERS,
+                    timeout=cls.TIMEOUT
+                )
 
-            if response.status_code != 200:
+                if response.status_code == 200:
+                    return cls._normalize_response(response.json())
+
                 print("Audio API error:", response.status_code, response.text)
+
+                if response.status_code == 429:
+                    time.sleep(3 + attempt * 2)  # backoff
+                    continue
+
                 return None
 
-            return cls._normalize_response(response.json())
+            except requests.exceptions.Timeout:
+                print("Audio API timeout (retrying)...")
+                time.sleep(2)
+                continue
 
-        except Exception as e:
-            print("Audio API exception:", str(e))
-            return None
+            except Exception as e:
+                print("Audio API exception:", str(e))
+                return None
+
+        return None
 
     @classmethod
     def _fetch_by_query(cls, title: str, artist: str = None) -> Optional[Dict]:
@@ -81,23 +96,36 @@ class AudioFeatureService:
         if artist:
             params["artist"] = artist
 
-        try:
-            response = requests.get(
-                url,
-                headers=cls.HEADERS,
-                params=params,
-                timeout=cls.TIMEOUT
-            )
+        for attempt in range(2):  # ✅ retry loop
+            try:
+                response = requests.get(
+                    url,
+                    headers=cls.HEADERS,
+                    params=params,
+                    timeout=cls.TIMEOUT
+                )
 
-            if response.status_code != 200:
+                if response.status_code == 200:
+                    return cls._normalize_response(response.json())
+
                 print("Audio API fallback error:", response.status_code, response.text)
+
+                if response.status_code == 429:
+                    time.sleep(3 + attempt * 2)
+                    continue
+
                 return None
 
-            return cls._normalize_response(response.json())
+            except requests.exceptions.Timeout:
+                print("Audio API fallback timeout (retrying)...")
+                time.sleep(2)
+                continue
 
-        except Exception as e:
-            print("Audio API fallback exception:", str(e))
-            return None
+            except Exception as e:
+                print("Audio API fallback exception:", str(e))
+                return None
+
+        return None
 
     # ==================================================
     # NORMALIZATION
@@ -124,7 +152,7 @@ class AudioFeatureService:
             "danceability": AudioFeatureService._normalize_percent(data.get("danceability")),
             "loudness": AudioFeatureService._safe_float(data.get("loudness")),
             "valence": AudioFeatureService._normalize_percent(
-                data.get("happiness")  # maps to mood
+                data.get("happiness")
             ),
         }
 
@@ -145,7 +173,6 @@ class AudioFeatureService:
             if value is None:
                 return None
 
-            # handle "-5 dB"
             if isinstance(value, str):
                 value = value.replace(" dB", "")
 

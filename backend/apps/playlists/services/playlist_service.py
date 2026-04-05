@@ -15,19 +15,19 @@ class PlaylistService:
         )
 
     @staticmethod
-    def get_playlist(playlist_id):
-        return Playlist.objects.get(id=playlist_id)
+    def get_playlist(playlist_id, user):
+        try:
+            return Playlist.objects.get(id=playlist_id, user=user)
+        except Playlist.DoesNotExist:
+            raise ValueError("Playlist not found")
 
     @staticmethod
     def get_user_playlists(user):
-        return Playlist.objects.filter(user=user)
+        return Playlist.objects.filter(user=user).order_by("-created_at")
 
     @staticmethod
     def update_playlist(playlist_id, user, data):
-        playlist = Playlist.objects.get(id=playlist_id)
-
-        if playlist.user != user:
-            raise PermissionError("Not allowed")
+        playlist = PlaylistService.get_playlist(playlist_id, user)
 
         if "title" in data:
             if not data["title"]:
@@ -45,26 +45,16 @@ class PlaylistService:
 
     @staticmethod
     def delete_playlist(playlist_id, user):
-        playlist = Playlist.objects.get(id=playlist_id)
-
-        if playlist.user != user:
-            raise PermissionError("Not allowed")
-
+        playlist = PlaylistService.get_playlist(playlist_id, user)
         playlist.delete()
-    
+
     @staticmethod
-    def get_playlist_with_items(playlist_id, user=None):
-        playlist = Playlist.objects.get(id=playlist_id)
+    def get_playlist_with_items(playlist_id, user):
+        playlist = PlaylistService.get_playlist(playlist_id, user)
 
-        # Optional: enforce access control
-        if not playlist.is_public:
-            if user is None or playlist.user != user:
-                raise PermissionError("Not allowed")
-
-        # Fetch ordered items
         items = PlaylistItem.objects.filter(
             playlist=playlist
-        ).order_by('position')
+        ).select_related("track").order_by("position")
 
         return {
             "id": playlist.id,
@@ -74,15 +64,23 @@ class PlaylistService:
             "items": [
                 {
                     "id": item.id,
-                    "song_id": item.song_id,
-                    "position": item.position
+                    "position": item.position,
+                    "track": {
+                        "id": item.track.id if item.track else None,
+                        "title": item.track.title if item.track else None,
+                        "bpm": item.track.bpm if item.track else None,
+                        "energy": item.track.energy if item.track else None,
+                        "valence": item.track.valence if item.track else None,
+                    }
                 }
                 for item in items
             ]
         }
 
     @staticmethod
-    def get_playlist_items_only(playlist_id):
+    def get_playlist_items_only(playlist_id, user):
+        playlist = PlaylistService.get_playlist(playlist_id, user)
+
         return PlaylistItem.objects.filter(
-            playlist_id=playlist_id
-        ).order_by('position')
+            playlist=playlist
+        ).order_by("position")

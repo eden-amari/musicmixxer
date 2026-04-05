@@ -11,8 +11,8 @@ class EnrichmentService:
     _calls_made = 0
     _last_call_time = 0
 
-    _rate_limit_per_sec = 1
-    _retry_attempts = 2
+    _rate_limit_per_sec = 0.3   # ✅ ~1 request every 3 seconds
+    _retry_attempts = 3         # ✅ slightly more retries
 
     @classmethod
     def enrich(cls, data: Dict, access_token: str) -> Dict:
@@ -57,12 +57,13 @@ class EnrichmentService:
 
                 print(f"[Enrichment Error] attempt={attempt} error={error_str}")
 
+                # 🔥 SMART BACKOFF
                 if "429" in error_str:
-                    time.sleep(2)
+                    time.sleep(3 + attempt * 2)   # 3s → 5s → 7s
                     continue
 
                 if "timeout" in error_str.lower():
-                    time.sleep(1)
+                    time.sleep(2 + attempt)       # 2s → 3s → 4s
                     continue
 
                 return data
@@ -72,10 +73,14 @@ class EnrichmentService:
     @classmethod
     def _throttle(cls):
         now = time.time()
+
+        # minimum interval between calls
+        min_interval = 1 / cls._rate_limit_per_sec   # ~3.33 sec
+
         elapsed = now - cls._last_call_time
 
-        if elapsed < 1:
-            time.sleep(1 - elapsed)
+        if elapsed < min_interval:
+            time.sleep(min_interval - elapsed)
 
         cls._last_call_time = time.time()
 
