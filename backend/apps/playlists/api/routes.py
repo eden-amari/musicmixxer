@@ -14,6 +14,19 @@ router = Router(auth=JWTAuth(), tags=["playlists"])
 
 
 # =========================
+# HELPERS
+# =========================
+
+def _extract_spotify_token(request):
+    """
+    Extract Spotify token from custom header.
+    Expected:
+        X-Spotify-Token: <token>
+    """
+    return request.headers.get("X-Spotify-Token")
+
+
+# =========================
 # SCHEMAS
 # =========================
 
@@ -168,12 +181,18 @@ def reorder_playlist(
 @router.post("/spotify/import")
 def import_spotify(request: HttpRequest, payload: ImportSpotifySchema):
 
-    access_token = request.headers.get("Authorization")
+    spotify_token = _extract_spotify_token(request)
+
+    if not spotify_token:
+        return {
+            "success": False,
+            "error": "Spotify token required"
+        }
 
     result = SpotifyImportService.import_playlist(
         user=request.user,
         playlist_id=payload.playlist_id,
-        access_token=access_token
+        access_token=spotify_token
     )
 
     return {
@@ -231,13 +250,19 @@ def export_playlist(
     playlist_id: int,
     payload: ExportSpotifySchema
 ):
-    access_token = request.headers.get("Authorization")
+    spotify_token = _extract_spotify_token(request)
+
+    if not spotify_token:
+        return {
+            "success": False,
+            "error": "Spotify token required"
+        }
 
     PlaylistService.get_playlist(playlist_id, user=request.user)
 
     result = SpotifyExportService.export(
         playlist_id=playlist_id,
-        access_token=access_token,
+        access_token=spotify_token,
         name=payload.name
     )
 

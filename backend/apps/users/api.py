@@ -15,36 +15,51 @@ router = Router(auth=JWTAuth())
 User = get_user_model()
 
 
+# =========================
 # ✅ GET CURRENT USER
-@router.get("/me", response=UserOut)
+# =========================
+
+@router.get("/me")
 def get_me(request):
-    user = request.auth
+    user = request.user
 
     return {
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "name": user.name,
-        "bio": user.bio,
+        "success": True,
+        "data": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "name": user.name,
+            "bio": user.bio,
+        }
     }
 
 
+# =========================
 # ✅ UPDATE USER PROFILE
-@router.patch("/me", response=UserOut)
+# =========================
+
+@router.patch("/me")
 def update_me(request, data: UpdateUserSchema):
-    user = request.auth
+    user = request.user
     user = update_user(user, data)
 
     return {
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
-        "name": user.name,
-        "bio": user.bio,
+        "success": True,
+        "data": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "name": user.name,
+            "bio": user.bio,
+        }
     }
 
 
+# =========================
 # ✅ LOGOUT
+# =========================
+
 class LogoutSchema(Schema):
     refresh: str
 
@@ -75,7 +90,7 @@ class GoogleAuthSchema(Schema):
     token: str
 
 
-@router.post("/auth/google", auth=None)
+@router.post("/google", auth=None)
 def google_login(request, data: GoogleAuthSchema):
     try:
         idinfo = id_token.verify_oauth2_token(
@@ -88,9 +103,8 @@ def google_login(request, data: GoogleAuthSchema):
         name = idinfo.get("name", "")
 
         if not email:
-            return {"error": "Email not available"}
+            return {"success": False, "error": "Email not available"}
 
-        # 🔥 username generation
         base_username = email.split("@")[0]
         username = base_username
 
@@ -112,19 +126,23 @@ def google_login(request, data: GoogleAuthSchema):
         refresh = RefreshToken.for_user(user)
 
         return {
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "name": user.name,
-                "bio": user.bio,
+            "success": True,
+            "data": {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username,
+                    "name": user.name,
+                    "bio": user.bio,
+                }
             }
         }
 
     except Exception as e:
         return {
+            "success": False,
             "error": "Invalid Google token",
             "details": str(e)
         }

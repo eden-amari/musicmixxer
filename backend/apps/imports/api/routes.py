@@ -3,55 +3,87 @@
 from ninja import Router, File
 from ninja.files import UploadedFile
 
+from apps.users.auth import JWTAuth
 from apps.imports.domain.services import ImportService
 
-router = Router()
+router = Router(auth=JWTAuth())
 
 
-def _extract_token(request):
+# =========================================================
+# HELPERS
+# =========================================================
+
+def _extract_spotify_token(request):
     """
-    Extract Spotify access token from Authorization header.
+    Extract Spotify token from custom header.
 
     Expected:
-        Authorization: Bearer <token>
+        X-Spotify-Token: <token>
     """
-    auth_header = request.headers.get("Authorization", "")
+    return request.headers.get("X-Spotify-Token")
 
-    if not auth_header.startswith("Bearer "):
-        return None
 
-    return auth_header.replace("Bearer ", "").strip()
-
+# =========================================================
+# CSV IMPORT
+# =========================================================
 
 @router.post("/csv")
-def import_csv(request, file: UploadedFile = File(...)):
-    access_token = _extract_token(request)
+def import_csv(
+    request,
+    file: UploadedFile = File(...),
+    playlist_id: int = None,
+):
+    spotify_token = _extract_spotify_token(request)
 
-    if not access_token:
+    try:
+        result = ImportService.import_file(
+            file=file.file,
+            file_type="csv",
+            access_token=spotify_token,   # 🔥 optional
+            user=request.user,
+            playlist_id=playlist_id
+        )
+
         return {
-            "success": False,
-            "error": "Spotify access token required"
+            "success": True,
+            "data": result
         }
 
-    return ImportService.import_file(
-        file=file.file,
-        file_type="csv",
-        access_token=access_token
-    )
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
 
+
+# =========================================================
+# JSON IMPORT
+# =========================================================
 
 @router.post("/json")
-def import_json(request, file: UploadedFile = File(...)):
-    access_token = _extract_token(request)
+def import_json(
+    request,
+    file: UploadedFile = File(...),
+    playlist_id: int = None,
+):
+    spotify_token = _extract_spotify_token(request)
 
-    if not access_token:
+    try:
+        result = ImportService.import_file(
+            file=file.file,
+            file_type="json",
+            access_token=spotify_token,   # 🔥 optional
+            user=request.user,
+            playlist_id=playlist_id
+        )
+
         return {
-            "success": False,
-            "error": "Spotify access token required"
+            "success": True,
+            "data": result
         }
 
-    return ImportService.import_file(
-        file=file.file,
-        file_type="json",
-        access_token=access_token
-    )
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
