@@ -9,7 +9,7 @@ __pycache__/
 venv/
 env/
 
-# Environment variables (NEVER COMMIT)
+# Environment variables
 .env
 .env.*
 
@@ -19,18 +19,18 @@ db.sqlite3
 media/
 staticfiles/
 
-# VS Code / IDE
+# IDE
 .vscode/
 .idea/
 
 # macOS
 .DS_Store
 
-# Testing / coverage
+# Testing
 .coverage
 htmlcov/
 
-# Node (future frontend)
+# Node
 node_modules/
 .next/
-dist/db.sqlite3
+dist/
