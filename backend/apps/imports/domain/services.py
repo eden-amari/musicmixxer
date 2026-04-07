@@ -118,7 +118,12 @@ class ImportService:
     # =========================================================
     @classmethod
     def _process_batch(cls, batch, access_token, playlist):
-
+        """
+        Process a batch of tracks with duplicate detection and enrichment logic.
+        - Skip if track exists AND is fully enriched
+        - Update if track exists BUT is incomplete
+        - Create if track doesn't exist
+        """
         success, failed, duplicates = 0, 0, 0
         errors: List[Dict] = []
 
@@ -136,25 +141,39 @@ class ImportService:
                     resolved = data
 
                 spotify_id = resolved.get("spotify_id")
+                title = resolved.get("title")
+                artist = resolved.get("artist")
 
                 # --------------------
-                # DEDUPE
+                # DEDUPE WITH ENRICHMENT CHECK
                 # --------------------
+                track_obj = None
+                
+                # Try to find existing track by spotify_id
                 if spotify_id:
-                    existing = TrackService.get_by_spotify_id(spotify_id)
+                    track_obj = TrackService.get_by_spotify_id(spotify_id)
+                
+                # If not found by spotify_id, try by unique_key
+                if not track_obj and title and artist:
+                    from apps.imports.domain.utils import generate_track_key
+                    unique_key = generate_track_key({"title": title, "artist": artist})
+                    try:
+                        track_obj = TrackService.get_by_unique_key(unique_key)
+                    except:
+                        pass
 
-                    if existing:
-                        track_obj = existing
+                if track_obj:
+                    # Track exists — check if enriched
+                    if track_obj.is_enriched:
+                        # ✅ Already enriched — skip, no DB write
                         duplicates += 1
                     else:
+                        # ⚡ Exists but incomplete — fill in missing fields only
                         enriched = cls._maybe_enrich(resolved, access_token)
-                        track_obj, created = TrackService.create_safe(enriched)
-
-                        if created:
-                            success += 1
-                        else:
-                            duplicates += 1
+                        TrackService._update_enrichment(track_obj, enriched)
+                        success += 1
                 else:
+                    # Brand new track — create safely
                     enriched = cls._maybe_enrich(resolved, access_token)
                     track_obj, created = TrackService.create_safe(enriched)
 
@@ -166,8 +185,9 @@ class ImportService:
                 # 🔥 ATTACH TO PLAYLIST
                 PlaylistItemService.add_song_to_playlist(
                     playlist_id=playlist.id,
-                    song_id=track_obj.id,
-                    position=existing_count + i
+                    track_id=track_obj.id,
+                    user=playlist.user,
+                    position=existing_count + i + 1  # 🔥 IMPORTANT (1-based index)
                 )
 
             except Exception as e:
@@ -203,3 +223,4 @@ class ImportService:
             "type": error_type,
             "message": message,
         }
+    

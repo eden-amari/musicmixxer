@@ -1,53 +1,64 @@
-from django.db import transaction
+from django.db import transaction, models
+
 from apps.playlists.models import Playlist, PlaylistItem
-from django.db import models
+from apps.tracks.models import Track
+
 
 class PlaylistItemService:
 
     @staticmethod
     @transaction.atomic
-    def add_song_to_playlist(playlist_id, song_id, position=None):
-        
-        # Step 1: Validate playlist
-        playlist = Playlist.objects.get(id=playlist_id)
+    def add_song_to_playlist(playlist_id, track_id, user, position=None):
+        # 🔐 Validate playlist ownership
+        try:
+            playlist = Playlist.objects.get(id=playlist_id, user=user)
+        except Playlist.DoesNotExist:
+            raise ValueError("Playlist not found or access denied")
 
-        # Step 2: Get current size
+        # 🔍 Validate track exists
+        try:
+            track = Track.objects.get(id=track_id)
+        except Track.DoesNotExist:
+            raise ValueError("Track not found")
+
+        # 🔢 Current size
         size = PlaylistItem.objects.filter(playlist=playlist).count()
 
-        # Step 3: Normalize position
-        if position is None or position > size:
-            position = size
+        # 📍 Normalize position (1-based)
+        if position is None or position > size + 1:
+            position = size + 1
 
-        if position < 0:
-            raise ValueError("Position cannot be negative")
+        if position < 1:
+            raise ValueError("Position must be >= 1")
 
-        # Step 4: Shift items (only if inserting not at end)
-        items_to_shift = PlaylistItem.objects.filter(
+        # 🔄 Shift RIGHT
+        PlaylistItem.objects.filter(
             playlist=playlist,
             position__gte=position
-        ).order_by('-position')
+        ).update(position=models.F("position") + 1)
 
-        for item in items_to_shift:
-            item.position += 1
-            item.save()
-        # Step 5: Create new item
+        # ➕ Create item (FIXED: using track FK)
         item = PlaylistItem.objects.create(
             playlist=playlist,
-            song_id=song_id,
+            track=track,
             position=position
         )
 
         return item
 
-
     @staticmethod
     @transaction.atomic
-    def remove_song_from_playlist(playlist_id, position):
+    def remove_song_from_playlist(playlist_id, position, user):
+        # 🔐 Validate playlist ownership
+        try:
+            playlist = Playlist.objects.get(id=playlist_id, user=user)
+        except Playlist.DoesNotExist:
+            raise ValueError("Playlist not found or access denied")
 
-        # Step 1: find item
+        # 🔍 Find item
         try:
             item = PlaylistItem.objects.get(
-                playlist_id=playlist_id,
+                playlist=playlist,
                 position=position
             )
         except PlaylistItem.DoesNotExist:
@@ -55,26 +66,25 @@ class PlaylistItemService:
 
         removed_position = item.position
 
-        # Step 2: delete item
+        # ❌ Delete
         item.delete()
 
-        # Step 3: shift LEFT (LOW → HIGH)
-        items_to_shift = PlaylistItem.objects.filter(
-            playlist_id=playlist_id,
+        # 🔄 Shift LEFT
+        PlaylistItem.objects.filter(
+            playlist=playlist,
             position__gt=removed_position
-        ).order_by('position')
-
-        for item in items_to_shift:
-            item.position -= 1
-            item.save()
-    
+        ).update(position=models.F("position") - 1)
 
     @staticmethod
     @transaction.atomic
-    def reorder_playlist(playlist_id, new_order):
+    def reorder_playlist(playlist_id, new_order, user):
+        # 🔐 Validate playlist ownership
+        try:
+            playlist = Playlist.objects.get(id=playlist_id, user=user)
+        except Playlist.DoesNotExist:
+            raise ValueError("Playlist not found or access denied")
 
-        # Step 1: fetch items
-        items = PlaylistItem.objects.filter(playlist_id=playlist_id)
+        items = PlaylistItem.objects.filter(playlist=playlist)
 
         if not items.exists():
             raise ValueError("Playlist is empty")
@@ -82,20 +92,20 @@ class PlaylistItemService:
         if len(new_order) != items.count():
             raise ValueError("Invalid reorder list length")
 
-        # Step 2: map item_id → item
         item_map = {item.id: item for item in items}
 
-        # Step 3: validate IDs
         if set(new_order) != set(item_map.keys()):
             raise ValueError("Mismatch in playlist items")
 
-        # Step 4: TEMP SHIFT (avoid unique constraint collision)
-        for item in items:
-            item.position += 1000
-            item.save()
+        # 🚨 TEMP SHIFT (avoid unique constraint)
+        PlaylistItem.objects.filter(playlist=playlist).update(
+            position=models.F("position") + 1000
+        )
 
-        # Step 5: assign new positions
-        for index, item_id in enumerate(new_order):
-            item = item_map[item_id]
-            item.position = index
-            item.save()
+        # ✅ Assign new positions (1-based)
+        for index, item_id in enumerate(new_order, start=1):
+            PlaylistItem.objects.filter(id=item_id).update(position=index)
+    
+    @staticmethod
+    def get_playlist_length(playlist_id: int) -> int:
+        return PlaylistItem.objects.filter(playlist_id=playlist_id).count()

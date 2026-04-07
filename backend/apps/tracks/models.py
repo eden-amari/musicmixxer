@@ -31,3 +31,16 @@ class Track(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.artist}"
+    
+    # Enrichment Status
+    @property
+    def is_enriched(self) -> bool:
+        """
+        A track is considered enriched if the core
+        audio features have been filled in.
+        """
+        return all([
+            self.bpm is not None,
+            self.energy is not None,
+            self.genre is not None,
+        ])

@@ -29,6 +29,9 @@ class SpotifyImportService:
 
         client = SpotifyClient(access_token)
 
+        # --------------------
+        # FETCH PLAYLIST META
+        # --------------------
         playlist_data = client._request("GET", f"/playlists/{playlist_id}")
 
         playlist = PlaylistService.create_playlist(
@@ -37,6 +40,9 @@ class SpotifyImportService:
             description=playlist_data.get("description") or ""
         )
 
+        # --------------------
+        # FETCH TRACKS
+        # --------------------
         items = client.get_playlist_items(playlist_id)
 
         stats = {
@@ -47,11 +53,15 @@ class SpotifyImportService:
             "errors": []
         }
 
+        # --------------------
+        # PROCESS TRACKS
+        # --------------------
         for index, item in enumerate(items):
             stats["total"] += 1
 
             try:
-                track = item.get("track")
+                # ✅ FIXED (only change)
+                track = item.get("track") or item.get("item")
 
                 if not track or not track.get("id"):
                     stats["failed"] += 1
@@ -62,13 +72,13 @@ class SpotifyImportService:
                 # --------------------
                 data = {
                     "title": track.get("name"),
-                    "artist": track.get("artists")[0].get("name") if track.get("artists") else None,
+                    "artist": track.get("artists", [{}])[0].get("name"),
                     "spotify_id": track.get("id"),
                     "genre": "unknown",
                 }
 
                 # --------------------
-                # RESOLVE
+                # RESOLVE (optional)
                 # --------------------
                 try:
                     resolved = TrackResolver.resolve(data, access_token) or data
@@ -84,22 +94,53 @@ class SpotifyImportService:
                     enriched = resolved
 
                 # --------------------
-                # STORE
+                # DEDUPE WITH ENRICHMENT CHECK
                 # --------------------
-                track_obj, created = TrackService.create_safe(enriched)
+                spotify_id = enriched.get("spotify_id")
+                title = enriched.get("title")
+                artist = enriched.get("artist")
+                
+                track_obj = None
+                
+                # Try to find existing track by spotify_id
+                if spotify_id:
+                    track_obj = TrackService.get_by_spotify_id(spotify_id)
+                
+                # If not found by spotify_id, try by unique_key
+                if not track_obj and title and artist:
+                    from apps.imports.domain.utils import generate_track_key
+                    unique_key = generate_track_key({"title": title, "artist": artist})
+                    try:
+                        track_obj = TrackService.get_by_unique_key(unique_key)
+                    except:
+                        pass
 
-                if created:
-                    stats["success"] += 1
+                if track_obj:
+                    # Track exists — check if enriched
+                    if track_obj.is_enriched:
+                        # ✅ Already enriched — skip, no DB write
+                        stats["duplicates"] += 1
+                    else:
+                        # ⚡ Exists but incomplete — fill in missing fields only
+                        TrackService._update_enrichment(track_obj, enriched)
+                        stats["success"] += 1
                 else:
-                    stats["duplicates"] += 1
+                    # Brand new track — create safely
+                    track_obj, created = TrackService.create_safe(enriched)
+
+                    if created:
+                        stats["success"] += 1
+                    else:
+                        stats["duplicates"] += 1
 
                 # --------------------
                 # ATTACH
                 # --------------------
                 PlaylistItemService.add_song_to_playlist(
                     playlist_id=playlist.id,
-                    song_id=track_obj.id,
-                    position=index
+                    track_id=track_obj.id,
+                    user=user,
+                    position=index + 1
                 )
 
             except Exception as e:
@@ -108,7 +149,9 @@ class SpotifyImportService:
 
         return stats
 
-    # 🔥 OPTIONAL: import all playlists
+    # --------------------------------------------------
+    # OPTIONAL: Import ALL playlists
+    # --------------------------------------------------
     @staticmethod
     def import_all_user_playlists(user, access_token: str) -> List[Dict]:
 
@@ -121,11 +164,11 @@ class SpotifyImportService:
             try:
                 result = SpotifyImportService.import_playlist(
                     user=user,
-                    playlist_id=p["id"],
+                    playlist_id=p.get("id"),
                     access_token=access_token
                 )
                 results.append({
-                    "playlist": p["name"],
+                    "playlist": p.get("name"),
                     "stats": result
                 })
             except Exception as e:
