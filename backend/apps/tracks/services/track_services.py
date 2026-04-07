@@ -20,44 +20,14 @@ class TrackService:
     - spotify_id is PRIMARY identity when available
     - unique_key is fallback identity
     - Never create duplicates
-    - Allow progressive enrichment (fill missing fields over time)
+    - Allow progressive enrichment
     """
-
-    # =========================================================
-    # LOOKUP
-    # =========================================================
-    @staticmethod
-    def get_by_spotify_id(spotify_id: str):
-        """
-        Fetch track by spotify_id.
-
-        Returns:
-            Track | None
-        """
-        if not spotify_id:
-            return None
-
-        try:
-            return Track.objects.get(spotify_id=spotify_id)
-        except Track.DoesNotExist:
-            return None
 
     # =========================================================
     # CREATE (SAFE + IDEMPOTENT)
     # =========================================================
     @staticmethod
     def create_safe(data: dict):
-        """
-        Idempotent track creation.
-
-        Strategy:
-        1. Try Spotify ID (primary identity)
-        2. Fallback to unique_key (title + artist)
-        3. Update enrichment if already exists
-
-        Returns:
-            (Track, created: bool)
-        """
         title = data.get("title")
         artist = data.get("artist")
         spotify_id = data.get("spotify_id")
@@ -88,13 +58,13 @@ class TrackService:
                 return obj, created
 
             except IntegrityError:
-                # Handle race condition safely
+                # 🔥 FIX: safe fallback (avoid crash)
                 try:
                     obj = Track.objects.get(spotify_id=spotify_id)
                     TrackService._update_enrichment(obj, data)
                     return obj, False
                 except Track.DoesNotExist:
-                    pass  # fallback to unique_key
+                    pass  # fallback to unique_key path
 
         # --------------------------------------------------
         # FALLBACK: CONTENT KEY
@@ -110,7 +80,7 @@ class TrackService:
                     "bpm": data.get("bpm"),
                     "genre": data.get("genre"),
                     "energy": data.get("energy"),
-                    "spotify_id": spotify_id,  # preserve if exists
+                    "spotify_id": spotify_id,  # 🔥 FIX: keep spotify_id if available
                 }
             )
 
@@ -129,13 +99,6 @@ class TrackService:
     # =========================================================
     @staticmethod
     def _update_enrichment(obj: Track, data: dict):
-        """
-        Incrementally update enrichment fields ONLY if missing.
-
-        This ensures:
-        - No overwriting good data
-        - Safe progressive enrichment
-        """
         updated = False
 
         if data.get("bpm") and not obj.bpm:
@@ -169,44 +132,28 @@ class TrackService:
     # FETCH
     # =========================================================
     @staticmethod
-    def fetch_track(track_id: int):
-        """
-        Fetch single track by ID.
-        """
+    def fetch_track(track_id):
         return Track.objects.get(id=track_id)
 
     @staticmethod
     def bulk_fetch(track_ids):
-        """
-        Fetch multiple tracks.
-        """
         return Track.objects.filter(id__in=track_ids)
 
     # =========================================================
     # SEARCH
     # =========================================================
     @staticmethod
-    def search_tracks(query: str):
-        """
-        Search tracks by title or artist.
-        """
+    def search_tracks(query):
         return Track.objects.filter(
             Q(title__icontains=query) |
             Q(artist__icontains=query)
         ).distinct()
 
     # =========================================================
-    # BULK INSERT (OPTIONAL OPTIMIZATION)
+    # BULK INSERT (OPTIONAL)
     # =========================================================
     @staticmethod
     def bulk_create_safe(data_list):
-        """
-        Bulk insert tracks (fast path).
-
-        Note:
-        - Ignores duplicates (via DB constraints)
-        - Does NOT handle enrichment updates
-        """
         objects = []
 
         for data in data_list:

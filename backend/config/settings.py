@@ -34,7 +34,7 @@ ACCOUNT_ADAPTER = "apps.users.adapters.CustomAccountAdapter"
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "backend"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -99,13 +99,6 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 
     "AUTH_HEADER_TYPES": ("Bearer",),
-    
-    # Add these crucial settings
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": None,
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
 }
 
 

@@ -166,9 +166,8 @@ class ImportService:
                 # 🔥 ATTACH TO PLAYLIST
                 PlaylistItemService.add_song_to_playlist(
                     playlist_id=playlist.id,
-                    track_id=track_obj.id,
-                    user=playlist.user,
-                    position=existing_count + i + 1  # 🔥 IMPORTANT (1-based index)
+                    song_id=track_obj.id,
+                    position=existing_count + i
                 )
 
             except Exception as e:
