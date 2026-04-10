@@ -102,11 +102,17 @@ class SpotifyClient:
         Create a new playlist for current user
 
         Endpoint:
-        POST /me/playlists
+        POST /users/{user_id}/playlists
         """
+        current_user = self.get_current_user()
+        user_id = current_user.get("id")
+
+        if not user_id:
+            raise ValueError("Spotify user id not available")
+
         return self._request(
             "POST",
-            "/me/playlists",
+            f"/users/{user_id}/playlists",
             json={
                 "name": name,
                 "description": description,

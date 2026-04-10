@@ -1,7 +1,11 @@
 import requests
 import time
+import logging
 from typing import Dict, Optional
 from django.conf import settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class AudioFeatureService:
@@ -69,7 +73,11 @@ class AudioFeatureService:
                 if response.status_code == 200:
                     return cls._normalize_response(response.json())
 
-                print("Audio API error:", response.status_code, response.text)
+                logger.warning(
+                    "Audio feature API returned status %s for spotify_id=%s",
+                    response.status_code,
+                    external_id,
+                )
 
                 if response.status_code == 429:
                     time.sleep(3 + attempt * 2)  # backoff
@@ -78,12 +86,20 @@ class AudioFeatureService:
                 return None
 
             except requests.exceptions.Timeout:
-                print("Audio API timeout (retrying)...")
+                logger.warning(
+                    "Audio feature API timed out for spotify_id=%s on attempt %s",
+                    external_id,
+                    attempt + 1,
+                )
                 time.sleep(2)
                 continue
 
             except Exception as e:
-                print("Audio API exception:", str(e))
+                logger.exception(
+                    "Audio feature API request failed for spotify_id=%s: %s",
+                    external_id,
+                    e,
+                )
                 return None
 
         return None
@@ -108,7 +124,11 @@ class AudioFeatureService:
                 if response.status_code == 200:
                     return cls._normalize_response(response.json())
 
-                print("Audio API fallback error:", response.status_code, response.text)
+                logger.warning(
+                    "Audio feature fallback API returned status %s for title='%s'",
+                    response.status_code,
+                    title,
+                )
 
                 if response.status_code == 429:
                     time.sleep(3 + attempt * 2)
@@ -117,12 +137,20 @@ class AudioFeatureService:
                 return None
 
             except requests.exceptions.Timeout:
-                print("Audio API fallback timeout (retrying)...")
+                logger.warning(
+                    "Audio feature fallback API timed out for title='%s' on attempt %s",
+                    title,
+                    attempt + 1,
+                )
                 time.sleep(2)
                 continue
 
             except Exception as e:
-                print("Audio API fallback exception:", str(e))
+                logger.exception(
+                    "Audio feature fallback request failed for title='%s': %s",
+                    title,
+                    e,
+                )
                 return None
 
         return None

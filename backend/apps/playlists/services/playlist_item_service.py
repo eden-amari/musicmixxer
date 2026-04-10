@@ -31,11 +31,16 @@ class PlaylistItemService:
         if position < 1:
             raise ValueError("Position must be >= 1")
 
-        # 🔄 Shift RIGHT
+        # 🔄 Shift RIGHT safely in two phases to avoid unique constraint collisions
         PlaylistItem.objects.filter(
             playlist=playlist,
             position__gte=position
-        ).update(position=models.F("position") + 1)
+        ).update(position=models.F("position") + 1000)
+
+        PlaylistItem.objects.filter(
+            playlist=playlist,
+            position__gte=position + 1000
+        ).update(position=models.F("position") - 999)
 
         # ➕ Create item (FIXED: using track FK)
         item = PlaylistItem.objects.create(

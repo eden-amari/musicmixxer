@@ -1,5 +1,7 @@
 from ninja import Router, Schema
 from django.http import HttpRequest
+from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 from typing import Optional, List
 
 from apps.users.auth import JWTAuth
@@ -29,15 +31,36 @@ def success(data=None):
     return {"success": True, "data": data, "error": None}
 
 
-def failure(e):
-    return {
+def infer_status_code(e):
+    if isinstance(e, PermissionError):
+        return 403
+    if isinstance(e, ObjectDoesNotExist):
+        return 404
+    if isinstance(e, ValueError):
+        message = str(e).lower()
+        if "not found" in message:
+            return 404
+        if "access denied" in message or "permission" in message:
+            return 403
+        return 400
+    return 500
+
+
+def failure(e, status_code=None):
+    return JsonResponse({
         "success": False,
         "data": None,
         "error": {
             "message": str(e),
             "type": e.__class__.__name__
         }
-    }
+    }, status=status_code or infer_status_code(e))
+
+
+def extract_spotify_track(item):
+    if not isinstance(item, dict):
+        return None
+    return item.get("track") or item.get("item")
 
 
 # =========================
@@ -348,7 +371,7 @@ def get_spotify_playlist_tracks(request: HttpRequest, playlist_id: str):
         data = []
 
         for item in items:
-            track = item.get("item")   # ✅ FIXED
+            track = extract_spotify_track(item)
 
             if not track:
                 continue

@@ -1,6 +1,10 @@
 from typing import Dict, Optional
+import logging
 
 from apps.integrations.spotify.client import SpotifyClient
+
+
+logger = logging.getLogger(__name__)
 
 
 class TrackResolver:
@@ -27,22 +31,21 @@ class TrackResolver:
         # SKIP IF NO TOKEN
         # ------------------------
         if not access_token:
-            print("❌ No access token → skipping resolver")
+            logger.debug("Skipping track resolution because no Spotify access token was provided")
             return data
 
         title = data.get("title")
         artist = data.get("artist")
 
         if not title:
-            print("❌ Missing title → cannot resolve")
+            logger.debug("Skipping track resolution because title is missing")
             return data
 
         client = SpotifyClient(access_token)
 
         # 🔥 IMPROVED QUERY
         query = TrackResolver._build_query(title, artist)
-
-        print(f"\n🔍 RESOLVER QUERY: {query}")
+        logger.debug("Resolving track with Spotify search query: %s", query)
 
         # ------------------------
         # CALL SPOTIFY
@@ -50,15 +53,14 @@ class TrackResolver:
         try:
             response = client.search_tracks(query)
         except Exception as e:
-            print("❌ Spotify API error:", str(e))
+            logger.warning("Spotify search failed while resolving track '%s': %s", title, e)
             return data
 
         items = response.get("tracks", {}).get("items", [])
-
-        print(f"🎯 Found {len(items)} results")
+        logger.debug("Spotify search returned %s candidate tracks", len(items))
 
         if not items:
-            print("❌ No matches found")
+            logger.info("No Spotify match found for track '%s'", title)
             return data
 
         # ------------------------
@@ -67,12 +69,16 @@ class TrackResolver:
         best_match = TrackResolver._pick_best_match(items, title, artist)
 
         if not best_match:
-            print("❌ No good match selected")
+            logger.info("Spotify search returned candidates but no suitable match for '%s'", title)
             return data
 
         spotify_id = best_match.get("id")
-
-        print(f"✅ MATCH FOUND: {best_match.get('name')} → {spotify_id}")
+        logger.info(
+            "Resolved track '%s' to Spotify track '%s' (%s)",
+            title,
+            best_match.get("name"),
+            spotify_id,
+        )
 
         # ------------------------
         # RETURN MERGED DATA

@@ -42,6 +42,22 @@ class TrackService:
         except Track.DoesNotExist:
             return None
 
+    @staticmethod
+    def get_by_unique_key(unique_key: str):
+        """
+        Fetch track by unique_key.
+
+        Returns:
+            Track | None
+        """
+        if not unique_key:
+            return None
+
+        try:
+            return Track.objects.get(unique_key=unique_key)
+        except Track.DoesNotExist:
+            return None
+
     # =========================================================
     # CREATE (SAFE + IDEMPOTENT)
     # =========================================================

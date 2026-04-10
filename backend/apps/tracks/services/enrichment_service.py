@@ -1,7 +1,11 @@
 from typing import Dict
 import time
+import logging
 
 from apps.tracks.services.feature_service import AudioFeatureService
+
+
+logger = logging.getLogger(__name__)
 
 
 class EnrichmentService:
@@ -54,8 +58,12 @@ class EnrichmentService:
 
             except Exception as e:
                 error_str = str(e)
-
-                print(f"[Enrichment Error] attempt={attempt} error={error_str}")
+                logger.warning(
+                    "Track enrichment attempt %s failed for spotify_id=%s: %s",
+                    attempt + 1,
+                    data.get("spotify_id"),
+                    error_str,
+                )
 
                 # 🔥 SMART BACKOFF
                 if "429" in error_str:

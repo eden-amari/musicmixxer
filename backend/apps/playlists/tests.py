@@ -1,21 +1,31 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 
 from apps.playlists.models import Playlist, PlaylistItem
-from apps.playlists.services.playlist_service import PlaylistService
 from apps.playlists.services.playlist_item_service import PlaylistItemService
+from apps.playlists.services.playlist_service import PlaylistService
+from apps.tracks.models import Track
 
 
 User = get_user_model()
 
 
 class TestPlaylistService(TestCase):
-
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser",
             email="test@test.com",
-            password="test123"
+            password="test123",
+        )
+        self.track_one = Track.objects.create(
+            title="Track One",
+            artist="Artist One",
+            unique_key="track-one-artist-one",
+        )
+        self.track_two = Track.objects.create(
+            title="Track Two",
+            artist="Artist Two",
+            unique_key="track-two-artist-two",
         )
 
     def test_create_playlist(self):
@@ -42,7 +52,7 @@ class TestPlaylistService(TestCase):
         updated = PlaylistService.update_playlist(
             playlist.id,
             self.user,
-            {"title": "New"}
+            {"title": "New"},
         )
 
         self.assertEqual(updated.title, "New")
@@ -51,16 +61,15 @@ class TestPlaylistService(TestCase):
         other_user = User.objects.create_user(
             username="otheruser",
             email="x@test.com",
-            password="123"
+            password="123",
         )
-
         playlist = PlaylistService.create_playlist(self.user, "Test")
 
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(ValueError):
             PlaylistService.update_playlist(
                 playlist.id,
                 other_user,
-                {"title": "Hack"}
+                {"title": "Hack"},
             )
 
     def test_delete_playlist(self):
@@ -72,158 +81,179 @@ class TestPlaylistService(TestCase):
 
     def test_get_playlist_with_items(self):
         playlist = PlaylistService.create_playlist(self.user, "Test")
-
-        PlaylistItemService.add_song_to_playlist(playlist.id, 1)
-        PlaylistItemService.add_song_to_playlist(playlist.id, 2)
+        PlaylistItemService.add_song_to_playlist(playlist.id, self.track_one.id, self.user)
+        PlaylistItemService.add_song_to_playlist(playlist.id, self.track_two.id, self.user)
 
         data = PlaylistService.get_playlist_with_items(playlist.id, user=self.user)
 
         self.assertEqual(len(data["items"]), 2)
-        self.assertEqual(data["items"][0]["song_id"], 1)
+        self.assertEqual(data["items"][0]["track"]["id"], self.track_one.id)
+        self.assertEqual(data["items"][1]["track"]["id"], self.track_two.id)
 
 
 class TestPlaylistItemService(TestCase):
-
     def setUp(self):
         self.user = User.objects.create_user(
             username="testuser",
             email="test@test.com",
-            password="test123"
+            password="test123",
         )
         self.playlist = PlaylistService.create_playlist(self.user, "Test Playlist")
-
-    # ----------------------
-    # ADD TESTS
-    # ----------------------
+        self.track_one = Track.objects.create(
+            title="Track One",
+            artist="Artist One",
+            unique_key="track-one-artist-one",
+        )
+        self.track_two = Track.objects.create(
+            title="Track Two",
+            artist="Artist Two",
+            unique_key="track-two-artist-two",
+        )
+        self.track_three = Track.objects.create(
+            title="Track Three",
+            artist="Artist Three",
+            unique_key="track-three-artist-three",
+        )
+        self.track_four = Track.objects.create(
+            title="Track Four",
+            artist="Artist Four",
+            unique_key="track-four-artist-four",
+        )
 
     def test_add_append(self):
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 2)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_two.id, self.user)
 
-        items = PlaylistItem.objects.order_by('position')
+        items = list(PlaylistItem.objects.order_by("position"))
 
-        self.assertEqual(items[0].song_id, 1)
-        self.assertEqual(items[1].song_id, 2)
+        self.assertEqual(items[0].track_id, self.track_one.id)
+        self.assertEqual(items[1].track_id, self.track_two.id)
+        self.assertEqual([item.position for item in items], [1, 2])
 
     def test_add_insert_middle(self):
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 2)
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 3)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_two.id, self.user)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_three.id, self.user)
+        PlaylistItemService.add_song_to_playlist(
+            self.playlist.id,
+            self.track_four.id,
+            self.user,
+            position=2,
+        )
 
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 99, position=1)
+        items = list(PlaylistItem.objects.order_by("position"))
 
-        items = list(PlaylistItem.objects.order_by('position'))
-
-        self.assertEqual([i.song_id for i in items], [1, 99, 2, 3])
+        self.assertEqual(
+            [item.track_id for item in items],
+            [self.track_one.id, self.track_four.id, self.track_two.id, self.track_three.id],
+        )
 
     def test_add_negative_position(self):
         with self.assertRaises(ValueError):
-            PlaylistItemService.add_song_to_playlist(self.playlist.id, 1, position=-1)
+            PlaylistItemService.add_song_to_playlist(
+                self.playlist.id,
+                self.track_one.id,
+                self.user,
+                position=-1,
+            )
 
-    def test_add_position_out_of_bounds(self):
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1, position=100)
+    def test_add_position_out_of_bounds_appends(self):
+        item = PlaylistItemService.add_song_to_playlist(
+            self.playlist.id,
+            self.track_one.id,
+            self.user,
+            position=100,
+        )
 
-        item = PlaylistItem.objects.first()
-        self.assertEqual(item.position, 0)
+        self.assertEqual(item.position, 1)
 
     def test_add_duplicates_allowed(self):
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
 
         self.assertEqual(PlaylistItem.objects.count(), 2)
 
-    # ----------------------
-    # REMOVE TESTS
-    # ----------------------
-
     def test_remove_middle(self):
-        for i in [1, 2, 3, 4]:
-            PlaylistItemService.add_song_to_playlist(self.playlist.id, i)
+        for track in [self.track_one, self.track_two, self.track_three, self.track_four]:
+            PlaylistItemService.add_song_to_playlist(self.playlist.id, track.id, self.user)
 
-        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 1)
+        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 2, self.user)
 
-        items = list(PlaylistItem.objects.order_by('position'))
+        items = list(PlaylistItem.objects.order_by("position"))
 
-        self.assertEqual([i.song_id for i in items], [1, 3, 4])
+        self.assertEqual([item.track_id for item in items], [self.track_one.id, self.track_three.id, self.track_four.id])
+        self.assertEqual([item.position for item in items], [1, 2, 3])
 
     def test_remove_first(self):
-        for i in [1, 2, 3]:
-            PlaylistItemService.add_song_to_playlist(self.playlist.id, i)
+        for track in [self.track_one, self.track_two, self.track_three]:
+            PlaylistItemService.add_song_to_playlist(self.playlist.id, track.id, self.user)
 
-        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 0)
+        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 1, self.user)
 
-        items = list(PlaylistItem.objects.order_by('position'))
+        items = list(PlaylistItem.objects.order_by("position"))
 
-        self.assertEqual([i.song_id for i in items], [2, 3])
+        self.assertEqual([item.track_id for item in items], [self.track_two.id, self.track_three.id])
+        self.assertEqual([item.position for item in items], [1, 2])
 
     def test_remove_last(self):
-        for i in [1, 2, 3]:
-            PlaylistItemService.add_song_to_playlist(self.playlist.id, i)
+        for track in [self.track_one, self.track_two, self.track_three]:
+            PlaylistItemService.add_song_to_playlist(self.playlist.id, track.id, self.user)
 
-        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 2)
+        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 3, self.user)
 
-        items = list(PlaylistItem.objects.order_by('position'))
+        items = list(PlaylistItem.objects.order_by("position"))
 
-        self.assertEqual([i.song_id for i in items], [1, 2])
+        self.assertEqual([item.track_id for item in items], [self.track_one.id, self.track_two.id])
 
     def test_remove_invalid_position(self):
         with self.assertRaises(ValueError):
-            PlaylistItemService.remove_song_from_playlist(self.playlist.id, 0)
-
-    # ----------------------
-    # REORDER TESTS
-    # ----------------------
+            PlaylistItemService.remove_song_from_playlist(self.playlist.id, 1, self.user)
 
     def test_reorder_basic(self):
         items = []
-        for i in [1, 2, 3]:
-            item = PlaylistItemService.add_song_to_playlist(self.playlist.id, i)
+        for track in [self.track_one, self.track_two, self.track_three]:
+            item = PlaylistItemService.add_song_to_playlist(self.playlist.id, track.id, self.user)
             items.append(item)
 
-        new_order = [items[2].id, items[0].id, items[1].id]
+        PlaylistItemService.reorder_playlist(
+            self.playlist.id,
+            [items[2].id, items[0].id, items[1].id],
+            self.user,
+        )
 
-        PlaylistItemService.reorder_playlist(self.playlist.id, new_order)
+        result = list(PlaylistItem.objects.order_by("position"))
 
-        result = list(PlaylistItem.objects.order_by('position'))
-
-        self.assertEqual([i.song_id for i in result], [3, 1, 2])
+        self.assertEqual([item.track_id for item in result], [self.track_three.id, self.track_one.id, self.track_two.id])
 
     def test_reorder_invalid_length(self):
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
 
         with self.assertRaises(ValueError):
-            PlaylistItemService.reorder_playlist(self.playlist.id, [])
+            PlaylistItemService.reorder_playlist(self.playlist.id, [], self.user)
 
     def test_reorder_mismatch_items(self):
-        PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
+        PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
 
         with self.assertRaises(ValueError):
-            PlaylistItemService.reorder_playlist(self.playlist.id, [999])
+            PlaylistItemService.reorder_playlist(self.playlist.id, [999], self.user)
 
     def test_reorder_with_duplicates(self):
-        item1 = PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
-        item2 = PlaylistItemService.add_song_to_playlist(self.playlist.id, 1)
+        item_one = PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
+        item_two = PlaylistItemService.add_song_to_playlist(self.playlist.id, self.track_one.id, self.user)
 
-        new_order = [item2.id, item1.id]
+        new_order = [item_two.id, item_one.id]
+        PlaylistItemService.reorder_playlist(self.playlist.id, new_order, self.user)
 
-        PlaylistItemService.reorder_playlist(self.playlist.id, new_order)
+        result = list(PlaylistItem.objects.order_by("position"))
 
-        result = list(PlaylistItem.objects.order_by('position'))
-
-        self.assertEqual([i.id for i in result], new_order)
-
-    # ----------------------
-    # INVARIANT TEST
-    # ----------------------
+        self.assertEqual([item.id for item in result], new_order)
 
     def test_positions_are_continuous(self):
-        for i in [1, 2, 3, 4]:
-            PlaylistItemService.add_song_to_playlist(self.playlist.id, i)
+        for track in [self.track_one, self.track_two, self.track_three, self.track_four]:
+            PlaylistItemService.add_song_to_playlist(self.playlist.id, track.id, self.user)
 
-        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 1)
+        PlaylistItemService.remove_song_from_playlist(self.playlist.id, 2, self.user)
 
-        items = list(PlaylistItem.objects.order_by('position'))
+        items = list(PlaylistItem.objects.order_by("position"))
 
-        positions = [i.position for i in items]
-
-        self.assertEqual(positions, list(range(len(items))))
+        self.assertEqual([item.position for item in items], [1, 2, 3])

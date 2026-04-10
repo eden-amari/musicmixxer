@@ -88,7 +88,6 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",  # we'll tighten later
     ),
 }
-from datetime import timedelta
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
@@ -187,10 +186,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_USE_JWT = True
-
-from datetime import timedelta
 
 
 AUTHENTICATION_BACKENDS = (
@@ -199,18 +197,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "none"
-
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*", "username*"]
-
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
 AUTH_USER_MODEL = "users.User"
-
 

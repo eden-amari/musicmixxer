@@ -20,7 +20,7 @@ class Normalizer:
         "bpm": int | None,
         "genre": str,
         "energy": float | None,
-        "external_id": str
+        "spotify_id": str
     }
     """
 
@@ -42,7 +42,9 @@ class Normalizer:
             "bpm": Normalizer._safe_int(row.get("bpm")),
             "genre": Normalizer._clean_str(row.get("genre")) or "unknown",
             "energy": Normalizer._safe_float(row.get("energy")),
-            "spotify_id": Normalizer._clean_str(row.get("external_id")),
+            "spotify_id": Normalizer._clean_str(
+                row.get("spotify_id") or row.get("external_id")
+            ),
         }
 
     # --------------------------------------------------

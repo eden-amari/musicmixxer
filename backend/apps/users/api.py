@@ -1,12 +1,15 @@
 from ninja import Router, Schema
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from django.core.exceptions import ObjectDoesNotExist
 import os
 import logging
 from django.contrib.auth import authenticate
 from datetime import timedelta
+from rest_framework_simplejwt.exceptions import TokenError
 
 from .auth import JWTAuth
 from .schemas import UpdateUserSchema
@@ -31,15 +34,30 @@ def success(data=None):
     }
 
 
-def failure(e):
-    return {
+def infer_status_code(e):
+    if isinstance(e, PermissionError):
+        return 403
+    if isinstance(e, ObjectDoesNotExist):
+        return 404
+    if isinstance(e, (ValueError, TokenError)):
+        message = str(e).lower()
+        if "not found" in message:
+            return 404
+        if "access denied" in message or "permission" in message:
+            return 403
+        return 400
+    return 500
+
+
+def failure(e, status_code=None):
+    return JsonResponse({
         "success": False,
         "data": None,
         "error": {
             "message": str(e),
             "type": e.__class__.__name__
         }
-    }
+    }, status=status_code or infer_status_code(e))
 
 
 # =========================
@@ -167,41 +185,6 @@ def google_login(request, data: GoogleAuthSchema):
 
 
 # =========================
-# TEST TOKEN (TEMPORARY)
-# =========================
-
-@router.post("/test-token", auth=None)
-def create_test_token(request):
-    """TEMPORARY - For testing only. Remove in production."""
-    try:
-        user, created = User.objects.get_or_create(
-            email="test@example.com",
-            defaults={
-                "username": "testuser",
-                "name": "Test User"
-            }
-        )
-
-        logger.info(f"{'Created' if created else 'Found'} test user: {user.email}")
-
-        refresh = RefreshToken.for_user(user)
-
-        return success({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-                "name": user.name,
-            }
-        })
-    except Exception as e:
-        logger.error(f"Test token error: {str(e)}")
-        return failure(e)
-
-
-# =========================
 # LOGIN WITH REMEMBER ME
 # =========================
 
@@ -214,10 +197,15 @@ class LoginSchema(Schema):
 @router.post("/login/remember-me", auth=None)
 def login_remember_me(request, data: LoginSchema):
     try:
-        user = authenticate(username=data.email, password=data.password)
+        try:
+            account = User.objects.get(email__iexact=data.email)
+        except ObjectDoesNotExist:
+            return failure(ValueError("Invalid credentials"), status_code=401)
+
+        user = authenticate(username=account.username, password=data.password)
 
         if not user:
-            return failure(Exception("Invalid credentials"))
+            return failure(ValueError("Invalid credentials"), status_code=401)
 
         refresh = RefreshToken.for_user(user)
 
