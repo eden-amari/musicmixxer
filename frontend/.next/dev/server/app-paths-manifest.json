@@ -1,9 +1,0 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/account/dashboard/page": "app/account/dashboard/page.js",
-  "/account/signIn/page": "app/account/signIn/page.js",
-  "/account/signUp/page": "app/account/signUp/page.js",
-  "/homepages/madonnaPage/page": "app/homepages/madonnaPage/page.js",
-  "/organizePlaylist/import/page": "app/organizePlaylist/import/page.js",
-  "/page": "app/page.js"
-}

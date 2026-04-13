@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/edenamari/Desktop/frontend/mixxer/frontend/src/app/loading.tsx"],"sourcesContent":["function Loading() {\n\t// Or a custom loading skeleton component\n\treturn <p>Loading... please bear with us! :(</p>;\n}\n\nexport default Loading;\n"],"names":["Loading"],"mappings":";;;;;;AAAA,SAASA;IACR,yCAAyC;IACzC,qBAAO,8OAAC;kBAAE;;;;;;AACX;uCAEeA"}}]
-}

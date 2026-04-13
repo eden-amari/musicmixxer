@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/mixxer/frontend/src/components/Navbar/Navbar.css"],"sourcesContent":[".nav-links {\n\tdisplay: flex;\n\tflex-direction: row;\n\tjustify-content: right;\n\tpadding: 20px;\n\t/* margin: 10px;; */\n\theight: 8vh;\n\tfont-family: Agrandir;\n}\n\n.li {\n\tmargin-right: 10px;\n}\n\n.donnaNavbar {\n\tbackground-color: #ffc9e8;\n\theight: 8vh;\n\tcolor: black;\n\tmargin-bottom: -2px;\n}\n\n.madonnaNavbar {\n\tbackground-color: black;\n\theight: 8vh;\n\tcolor: white;\n}\n\n.mcrNavbar {\n\tbackground-color: black;\n\theight: 8vh;\n\tcolor: white;\n}\n\n.newJeansNavbar {\n\tbackground-color: black;\n\theight: 8vh;\n\tcolor: white;\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;;AAUA;;;;AAIA;;;;;;;AAOA"}}]
-}
