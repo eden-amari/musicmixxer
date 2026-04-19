@@ -10,7 +10,9 @@
 		"lint": "eslint"
 	},
 	"dependencies": {
+		"embla-carousel-react": "^8.6.0",
 		"next": "^16.2.3",
+		"pure-react-carousel": "^1.35.0",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
 		"react-easy-crop": "^5.5.6",

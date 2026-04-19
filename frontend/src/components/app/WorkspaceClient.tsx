@@ -407,17 +407,16 @@ export function WorkspaceClient({
 				: "Export Playlist";
 
 	return (
-		<div className="workspace-shell">
-			<div className="workspace-status">
+		<div className="page-shell2 flexColumnLeft workspace-shell">
+			{/* <div className="workspace-status">
 				{message ? <div className="notice success">{message}</div> : null}
 				{error ? <div className="notice error">{error}</div> : null}
-			</div>
+			</div> */}
 
-			<section className="workspace-toolbar">
-				<div>
-					<div className="eyebrow">{initialSection}</div>
-					<h1>{currentTitle}</h1>
-				</div>
+			<section className=" workspace-toolbar">
+
+				<h1>{currentTitle}</h1>
+
 				<div className="workspace-toolbar-actions">
 					<button
 						className="ghost-button"
@@ -441,13 +440,23 @@ export function WorkspaceClient({
 						>
 							<input
 								required
+
 								value={createForm.title}
 								onChange={(event) =>
 									setCreateForm((current) => ({ ...current, title: event.target.value }))
 								}
 								placeholder="New playlist title"
+								style={{
+									background: "#ffffff",
+									color: "#8d8f9a;",
+									opacity: "80%",
+									border: "1px black #8d9a92",
+									borderRadius: "16px"
+								}}
+
 							/>
 							<input
+
 								value={createForm.description}
 								onChange={(event) =>
 									setCreateForm((current) => ({
@@ -456,8 +465,18 @@ export function WorkspaceClient({
 									}))
 								}
 								placeholder="Description"
+								style={{
+									background: "#ffffff",
+									color: "#8d8f9a;",
+									opacity: "80%",
+									border: "1px black #8d8f9a",
+									borderRadius: "16px"
+								}}
+
 							/>
-							<button className="primary-button" disabled={busyAction !== null} type="submit">
+							<button className="ghost-button primary-button" disabled={busyAction !== null} type="submit"
+
+							>
 								Create
 							</button>
 						</form>
@@ -465,8 +484,8 @@ export function WorkspaceClient({
 				</div>
 			</section>
 
-			<div className="workspace-content-grid">
-				<aside className="workspace-sidebar">
+			<div className=" workspace-content-grid">
+				<aside className="flexColumnLeft workspace-sidebar">
 					<div className="workspace-sidebar-header">
 						<h2>
 							{initialSection === "import" && importSource === "spotify"
@@ -480,12 +499,12 @@ export function WorkspaceClient({
 						</span>
 					</div>
 
-					<div className="workspace-list">
+					<div className=" flexColumnLeft workspace-list" style={{ marginLeft: "-1.2vw" }}>
 						{initialSection === "import" && importSource === "spotify" ? (
 							!spotifyToken ? (
-								<div className="empty-state">Connect Spotify to view your playlists.</div>
+								<div className="empty-state" style={{ marginLeft: "-1	.2vw" }}>Connect Spotify to view your playlists.</div>
 							) : spotifyPlaylists.length === 0 ? (
-								<div className="empty-state">No Spotify playlists loaded yet.</div>
+								<div className="empty-state" >No Spotify playlists loaded yet.</div>
 							) : (
 								spotifyPlaylists.map((playlist) => (
 									<button
@@ -498,9 +517,9 @@ export function WorkspaceClient({
 										type="button"
 										onClick={() => setSpotifyPlaylistId(playlist.id)}
 									>
-										<div className="workspace-list-art" aria-hidden="true">
+										{/* <div className="workspace-list-art" aria-hidden="true">
 											{playlist.name.slice(0, 1).toUpperCase()}
-										</div>
+										</div> */}
 										<div className="workspace-list-copy">
 											<strong>{playlist.name}</strong>
 											<small>
@@ -513,7 +532,7 @@ export function WorkspaceClient({
 								))
 							)
 						) : playlists.length === 0 ? (
-							<div className="empty-state">No playlists yet.</div>
+							<div className=" empty-state" style={{ marginLeft: "-1.2vw" }}>No playlists yet.</div>
 						) : (
 							playlists.map((playlist) => (
 								<button
@@ -522,9 +541,9 @@ export function WorkspaceClient({
 									type="button"
 									onClick={() => setSelectedId(playlist.id)}
 								>
-									<div className="workspace-list-art" aria-hidden="true">
+									{/* <div className="workspace-list-art" aria-hidden="true">
 										{playlist.title.slice(0, 1).toUpperCase()}
-									</div>
+									</div> */}
 									<div className="workspace-list-copy">
 										<strong>{playlist.title}</strong>
 										<small>Playlist</small>
@@ -658,15 +677,16 @@ export function WorkspaceClient({
 										</div>
 									</div>
 								) : (
-									<div className="muted-panel stack">
-										<p className="muted-copy">
+									<div className="muted-panel stack ">
+										<p className="muted-copy" style={{ marginLeft: "-1.2vw" }}>
 											Connect Spotify to see your personal playlists and choose one to import.
 										</p>
 										<div className="workspace-inline-actions">
 											<button
-												className="secondary-button"
+												className="secondary-button ghost-button"
 												type="button"
 												onClick={connectSpotifyForImport}
+												style={{ color: "black", marginLeft: "-1.2vw" }}
 											>
 												Connect Spotify
 											</button>
@@ -694,9 +714,9 @@ export function WorkspaceClient({
 											}
 										/>
 									</label>
-									<div className="muted-panel stack raw-import-options">
+									<div className="muted-panel stack raw-import-options" style={{ marginLeft: "-1.2vw" }}>
 										<div className="section-heading">
-											<h3>Enrichment options</h3>
+											<h2>Enrichment options</h2>
 										</div>
 										<label className="checkbox-row">
 											<input
@@ -716,12 +736,12 @@ export function WorkspaceClient({
 												? session?.spotifyToken
 													? "Spotify is connected. We&apos;ll use it to improve organization quality for this imported playlist."
 													: "Connect Spotify first to use Spotify-backed enrichment on raw imports."
-												: "Import without Spotify if you just want a fast raw ingest."}
+												: "Import without Spotify if you simply want a fast, raw ingest."}
 										</p>
 										{useSpotifyEnrichmentForRawImport && !session?.spotifyToken ? (
 											<div className="workspace-inline-actions">
 												<button
-													className="secondary-button"
+													className="secondary-button ghost-button"
 													type="button"
 													onClick={connectSpotifyForImport}
 												>
@@ -730,12 +750,12 @@ export function WorkspaceClient({
 											</div>
 										) : null}
 									</div>
-									<div className="workspace-inline-actions">
-										<button className="primary-button" disabled={busyAction !== null} type="submit">
+									<div className="workspace-inline-actions flexRow" style={{ marginTop: "-5vh" }}>
+										<button className="primary-button ghost-button" disabled={busyAction !== null} type="submit">
 											Import {importSource.toUpperCase()}
 										</button>
-										<label className="upload-card compact-upload">
-											<span>Upload {importSource.toUpperCase()}</span>
+										<label className="upload-card compact-upload ">
+											<span className=" ghost-button">Upload {importSource.toUpperCase()}</span>
 											<input
 												accept={
 													importSource === "csv"
@@ -764,16 +784,16 @@ export function WorkspaceClient({
 					{initialSection === "import" && importSource === "spotify" && spotifyPlaylistId ? (
 						<section className="workspace-strip stack">
 							<div className="workspace-playlist-head">
-								<div className="workspace-playlist-art large" aria-hidden="true">
+								{/* <div className="workspace-playlist-art large" aria-hidden="true">
 									{(selectedSpotifyPlaylist?.name || "S").slice(0, 1).toUpperCase()}
-								</div>
+								</div> */}
 								<div className="workspace-playlist-meta">
-									<div className="eyebrow">Selected playlist</div>
+									{/* <div className="eyebrow">Selected playlist</div> */}
 									<h2>
 										{selectedSpotifyPlaylist?.name || "Selected Spotify playlist"}
 									</h2>
 									<p className="muted-copy">
-										Preview the songs below, then import this playlist into MusicMixxer.
+										Preview the songs below, then import this playlist into Mixxer.
 									</p>
 									<div className="workspace-meta-inline">
 										<span>{selectedSpotifyTrackCount} tracks</span>
@@ -809,20 +829,20 @@ export function WorkspaceClient({
 							</div>
 						</section>
 					) : selectedPlaylist ? (
-						<section className="workspace-strip stack">
-							<div className="workspace-playlist-head">
-								<div className="workspace-playlist-art large" aria-hidden="true">
+						<section className="workspace-strip stack ">
+							<div className="workspace-playlist-head ">
+								{/* <div className="workspace-playlist-art large" aria-hidden="true">
 									{selectedPlaylist.title.slice(0, 1).toUpperCase()}
-								</div>
+								</div> */}
 								<div className="workspace-playlist-meta">
-									<div className="eyebrow">Selected playlist</div>
+									{/* <div className="eyebrow">Selected playlist</div> */}
 									<h2>{selectedPlaylist.title}</h2>
 									<p className="muted-copy">
 										{selectedPlaylist.description || "No description yet."}
 									</p>
 									<div className="workspace-meta-inline">
 										<span>{selectedPlaylist.items.length} tracks</span>
-										<span>Playlist</span>
+
 									</div>
 								</div>
 							</div>
@@ -855,7 +875,7 @@ export function WorkspaceClient({
 									}}
 								>
 									<div className="section-heading">
-										<h3>Manage playlist</h3>
+										<h2>Manage playlist</h2>
 									</div>
 									<div className="field-grid two-columns">
 										<label className="field">
@@ -885,16 +905,16 @@ export function WorkspaceClient({
 											/>
 										</label>
 									</div>
-									<div className="workspace-inline-actions">
+									<div className="workspace-inline-actions workspace-playlist-head">
 										<button
-											className="primary-button"
+											className="ghost-button"
 											disabled={busyAction !== null}
 											type="submit"
 										>
 											Save changes
 										</button>
 										<button
-											className="danger-button"
+											className="danger-button "
 											disabled={busyAction !== null}
 											type="button"
 											onClick={() => {
@@ -937,8 +957,8 @@ export function WorkspaceClient({
 											<option value="valence">Mood</option>
 										</select>
 									</label>
-									<button className="secondary-button" disabled={busyAction !== null} type="submit">
-										Preview order
+									<button className="secondary-button ghost-button" disabled={busyAction !== null} type="submit" style={{ color: "black", marginLeft: ".5vw" }}>
+										Preview playlist
 									</button>
 									{initialSection === "export" ? (
 										<>
@@ -990,7 +1010,7 @@ export function WorkspaceClient({
 												</button>
 											) : (
 												<button
-													className="secondary-button"
+													className="secondary-button ghost-button"
 													disabled={busyAction !== null}
 													type="button"
 													onClick={connectSpotifyForExport}
@@ -1004,7 +1024,7 @@ export function WorkspaceClient({
 							) : null}
 
 							{initialSection === "export" ? (
-								<div className="muted-panel export-status-panel">
+								<div className="muted-panel export-status-panel" style={{marginLeft: "-1vw"}}>
 									<strong>
 										{session?.spotifyToken ? "Spotify export is ready" : "Spotify connection required"}
 									</strong>
@@ -1017,12 +1037,13 @@ export function WorkspaceClient({
 							) : null}
 
 							<div className="workspace-track-layout">
-								<div className="workspace-track-column">
-									<div className="section-heading">
-										<h3>Tracks</h3>
+								<div className="workspace-track-column ">
+									<div className=" section-heading ">
+										<h2>Tracks</h2>
+
 									</div>
 									{selectedPlaylist.items.length === 0 ? (
-										<div className="empty-state">This playlist has no imported tracks yet.</div>
+										<div className="empty-state" style={{ marginLeft: "-1.2vw" }}>This playlist has no imported tracks yet.</div>
 									) : (
 										<div className="workspace-track-list">
 											{selectedPlaylist.items.map((item) => (
@@ -1038,35 +1059,35 @@ export function WorkspaceClient({
 									)}
 								</div>
 
-								{initialSection !== "dashboard" ? (
-									<div className="workspace-track-column">
-										<div className="section-heading">
+								{/* {initialSection !== "dashboard" ? ( */}
+								<div className="workspace-track-column">
+									{/* <div className="section-heading">
 											<h3>Organized preview</h3>
 										</div>
 										{organizedTracks.length === 0 ? (
 											<div className="empty-state">
 												Run an organization mode to preview the backend ordering.
 											</div>
-										) : (
-											<div className="workspace-track-list">
-												{organizedTracks.map((track, index) => (
-													<div key={`${track.id}-${index}`} className="workspace-track-row accent">
-														<div className="workspace-track-index">{index + 1}</div>
-														<div className="workspace-track-copy">
-															<strong>{track.title}</strong>
-															<small>{formatMetric(track.bpm, "BPM")}</small>
-														</div>
-													</div>
-												))}
+										) : ( */}
+									<div className="workspace-track-list">
+										{organizedTracks.map((track, index) => (
+											<div key={`${track.id}-${index}`} className="workspace-track-row accent">
+												<div className="workspace-track-index">{index + 1}</div>
+												<div className="workspace-track-copy">
+													<strong>{track.title}</strong>
+													<small>{formatMetric(track.bpm, "BPM")}</small>
+												</div>
 											</div>
-										)}
+										))}
 									</div>
-								) : null}
+									{/* )} */}
+								</div>
+								{/* ) : null} */}
 							</div>
 						</section>
 					) : (
-						<section className="workspace-strip">
-							<div className="empty-state">
+						<section className="workspace-stri flexColumn ">
+							{/* <div className="empty-state  ">
 								{initialSection === "import" && importSource === "spotify"
 									? "Select one of your Spotify playlists from the left to inspect its tracks."
 									: initialSection === "dashboard"
@@ -1074,7 +1095,7 @@ export function WorkspaceClient({
 									: initialSection === "import"
 										? "Import raw playlist data and it will appear here."
 										: "Select a playlist to prepare it for export."}
-							</div>
+							</div> */}
 						</section>
 					)}
 				</div>

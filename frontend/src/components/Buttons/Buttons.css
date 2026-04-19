@@ -62,25 +62,20 @@
 	margin-right: auto;
 }
 
-.circularButtonLeft {
-	width: 4vh;
-	height: 4vh;
+.colorThemeButton {
+	height: 3vw;
+	width: 3vw;
+	line-height: 80px;
+	font-size: 2em;
+	font-weight: bold;
 	border-radius: 50%;
-	border: black;
-	background-color: rgb(255, 255, 255);
-	color: black;
-	margin-right: 10.75vw;
-}
-
-.circularButtonRight {
-	width: 4vh;
-	height: 4vh;
-	border-radius: 50%;
-	border: black;
-	color: black;
-	background-color: rgb(255, 255, 255);
-
-	margin-left: 10.75vw;
+	background-color: #184b8c;
+	color: white;
+	text-align: center;
+	cursor: pointer;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .donnaCircle:hover {
@@ -121,7 +116,8 @@
 	width: 22vw;
 	height: 6vh;
 	border-radius: 20px;
-	background-color: white;
+	background-color: rgb(88, 255, 51);
+	opacity: 50%;
 	color: black;
 	/* text-align: center; */
 	align-items: center;

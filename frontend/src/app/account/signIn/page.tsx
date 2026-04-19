@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
-
+import mxrLogo from "/src/assets/images/mxr.png";
+import { ColorThemeButton } from "@/components/Buttons/Buttons";
+import Image from "next/image";
 export default function SignInPage() {
 	const router = useRouter();
 	const { signIn } = useAuth();
@@ -18,6 +20,7 @@ export default function SignInPage() {
 
 	return (
 		<main className="auth-shell">
+
 			<form
 				className="auth-card"
 				onSubmit={(event) => {
@@ -34,10 +37,14 @@ export default function SignInPage() {
 						.finally(() => setIsSubmitting(false));
 				}}
 			>
-				<div className="eyebrow">Welcome back</div>
+				<div className="flexRow" style={{ marginLeft: "-82vw", marginTop: "-15vh" }}>
+					<Link href="/" ><Image className="logo" src={mxrLogo} alt="logo" title="logo" width={125} /></Link>
+					<ColorThemeButton></ColorThemeButton>
+				</div>
+				<h1 style={{ fontSize: "40px" }}>Welcome back!</h1>
 				<h1>Sign in to MusicMixxer</h1>
 				<p className="muted-copy">
-					Use your MusicMixxer account to access your personalized dashboard, manage your connected services, and more.
+					Use your Mixxer account to access your sorted playlists, personalized dashboard, manage your connected services, and more.
 				</p>
 				<label className="field">
 					<span>Email</span>
@@ -60,10 +67,10 @@ export default function SignInPage() {
 						onChange={(event) =>
 							setForm((current) => ({ ...current, password: event.target.value }))
 						}
-						placeholder="••••••••"
+						placeholder="• • • • • • • •"
 					/>
 				</label>
-				<label className="checkbox-row">
+				<label className="checkbox-row" style={{display: "flex", justifyContent: "center"}}>
 					<input
 						type="checkbox"
 						checked={form.remember_me}
@@ -76,13 +83,13 @@ export default function SignInPage() {
 					/>
 					<span>Keep me signed in on this browser</span>
 				</label>
-				{error ? <div className="notice error">{error}</div> : null}
-				<button className="primary-button" disabled={isSubmitting} type="submit">
+				{error ? <div className="notice error" style={{color: "black"}}>{error}</div> : null}
+				<button className="primary-button" style={{color: "black"}} disabled={isSubmitting} type="submit">
 					{isSubmitting ? "Signing in..." : "Sign in"}
 				</button>
-				<div className="auth-footer">
-					<Link href="/account/signUp">Create an account</Link>
-					<Link href="/">Back home</Link>
+				<div className="flexColumn">
+					<Link href="/account/signUp">Don't have an account?</Link>
+
 				</div>
 			</form>
 		</main>
