@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import googleLogo from "@/assets/images/googleLogo.png";
 import spotifyLogo from "@/assets/images/spotifyLogo.png";
+import "/src/components/Buttons/Buttons.css"
 
 type LandingAuthPanelProps = {
 	googleClientId: string;
@@ -151,44 +152,32 @@ export function LandingAuthPanel({
 		<section
 			aria-hidden={!isOpen}
 			className={isOpen ? "landing-auth-card landing-auth-card-compact open" : "landing-auth-card landing-auth-card-compact"}
-			id="landing-auth-panel"
-		>
-			<div className="landing-auth-header compact">
-				<div>
-					<strong>Sign in</strong>
-					<p className="landing-auth-copy">
-						Choose the login method that fits how you already use MusicMixxer.
-					</p>
-				</div>
+			id="landing-auth-panel">
+
+			<div className="google-action-area" ref={googleActionRef}>
+				<div className="google-render-slot" ref={googleButtonRef} />
 			</div>
 
 			<div className="landing-auth-stack">
-				<div className="landing-auth-row google-auth-row">
+				{/* <div className="landing-auth-row google-auth-row">
 					<div className="social-tile-meta">
 						<div className="social-icon google-icon" aria-hidden="true">
 							<Image alt="" className="social-logo" height={20} src={googleLogo} width={20} />
 						</div>
 						<div className="social-copy">
 							<span>Continue with Google</span>
-							<small>
-								{busy === "google"
-									? "Signing you in..."
-									: "Fastest setup with your Google account"}
-							</small>
 						</div>
 					</div>
-					<div className="google-action-area" ref={googleActionRef}>
-						<div className="google-render-slot" ref={googleButtonRef} />
-					</div>
-				</div>
+
+				</div> */}
 
 				<button
 					className="landing-auth-row landing-auth-row-button social-tile-button spotify-auth-button"
 					type="button"
 					onClick={() => {
 						window.location.assign("/api/backend/auth/spotify/login");
-					}}
-				>
+					}}>
+
 					<div className="social-tile-meta">
 						<div className="social-icon spotify-icon" aria-hidden="true">
 							<Image
@@ -201,26 +190,25 @@ export function LandingAuthPanel({
 						</div>
 						<div className="social-copy">
 							<span>Continue with Spotify</span>
-							<small>Use the Spotify account tied to your playlists</small>
 						</div>
 					</div>
-					<div className="landing-inline-cta">Open Spotify</div>
+					{/* <div className="landing-inline-cta">Open Spotify</div> */}
 				</button>
 
 				<Link className="landing-auth-row landing-auth-row-link" href="/account/signIn">
 					<div className="landing-auth-row-copy">
 						<span>Sign in with email</span>
-						<small>Use your existing MusicMixxer account details</small>
+						<small>Use your existing Mixxer account details</small>
 					</div>
-					<div className="landing-inline-cta">Open form</div>
+					{/* <div className="landing-inline-cta">Open form</div> */}
 				</Link>
 
 				<Link className="landing-auth-row landing-auth-row-link" href="/account/signUp">
 					<div className="landing-auth-row-copy">
 						<span>Create account</span>
-						<small>Start a fresh library if you have not signed up yet</small>
+						<small>Start a fresh library!</small>
 					</div>
-					<div className="landing-inline-cta secondary">Sign up</div>
+					{/* <div className="landing-inline-cta secondary">Sign up</div> */}
 				</Link>
 			</div>
 

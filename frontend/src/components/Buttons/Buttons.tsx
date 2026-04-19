@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import arrowPicWhite from "/src/assets/images/refresh_white.png";
+import Image from "next/image";
 import ColorSliver from "./ColorSliver";
 function HomeImportButton() {
 	return (
@@ -86,7 +88,62 @@ export function Checkbox() {
 		</div>
 	);
 }
+// ---------------------------------
+const getButtonStyle = (theme: string) => {
+	switch (theme) {
+		case "donna": return { backgroundColor: "#184b8c" };
+		case "madonna": return { backgroundColor: "#d388a3" };
+		case "newJeans": return { backgroundColor: "#bb9ae0" };
+		case "mcr": return { backgroundColor: "#194355" };
+		default: return {};
+	}
+};
 
+
+
+var cardCarousel = [
+	["Donna Summer", "Hot Stuff (VH1 1999)", "/src/assets/images/donnaAlbumCover.jpeg", "/videos/donna1999.mp4"],
+	["Madonna", "Vogue (MTV 1990)", "/src/assets/images/madonnaAlbumCover.jpg", "/videos/madonnaVogueLive.mp4"],
+	["New Jeans", "Cookie", "/src/assets/images/newJeansAlbumCover.jpeg", "/videos/newJeansMV.mp4"],
+	["My Chemical Romance", "Helena", "/src/assets/images/threecheerscover.png", "/videos/mcrHelenaMV.mp4"],
+]
+export function ColorThemeButton() {
+
+	const [currentTheme, setCurrentTheme] = useState("donna");
+	const [songTitle, setSongTitle] = useState("Hot Stuff (VH1 1999)");
+	const [songArtist, setSongArtist] = useState("Donna Summer");
+	const themes = ["donna", "madonna", "newJeans", "mcr"];
+	useEffect(() => {
+		document.body.className = currentTheme;
+	}, [currentTheme]);
+
+	let blobBG = getButtonStyle(currentTheme).backgroundColor
+	return (
+
+		<button
+
+			className="colorThemeButton" style={{ display: "flex", alignItems: "center", justifyContent: "center", ...getButtonStyle(currentTheme) }}
+
+
+			onClick={() => {
+				const currentIndex = themes.indexOf(currentTheme);
+				const nextIndex = (currentIndex + 1) % themes.length;
+				setCurrentTheme(themes[nextIndex]);
+				setSongTitle(cardCarousel[nextIndex][1]);
+				setSongArtist(cardCarousel[nextIndex][0]);
+
+				// let changeText = document.documentElement.getElementsByClassName("change2white")[0] as HTMLElement;
+				// if (currentTheme == "newJeans") {
+				// 	changeText.style.color = "#ffffff"; }
+				// else { changeText.style.color = "#000000"; }
+			}}
+		>
+			<Image alt="" className="social-logo" height={20} src={arrowPicWhite} width={20} />
+		</button>
+
+	);
+
+}
 // ---------------------------------------
 // type SubmitButtonProps = {
 //   className?: string;
